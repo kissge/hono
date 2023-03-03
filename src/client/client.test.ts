@@ -386,6 +386,31 @@ describe('Merge path with `app.route()`', () => {
       type verify = Expect<Equal<number, typeof data.bar>>
     })
   })
+
+  describe('Multiple endpoint groups', () => {
+    const naive = new Hono()
+      .get('/api/v1/foo', (c) => c.jsonT({ foo: '' }))
+      .post('/api/v1/bar', (c) => c.jsonT({ bar: 0 }))
+      .get('/api/v2/foo', (c) => c.jsonT({ foo: '' }))
+      .post('/api/v2/bar', (c) => c.jsonT({ bar: 0 }))
+
+    const api1 = new Hono()
+      .get('/foo', (c) => c.jsonT({ foo: '' }))
+      .post('/bar', (c) => c.jsonT({ bar: 0 }))
+    const api2 = new Hono()
+      .get('/foo', (c) => c.jsonT({ foo: '' }))
+      .post('/bar', (c) => c.jsonT({ bar: 0 }))
+    const app = new Hono().route('/api/v1', api1).route('/api/v2', api2)
+
+    type verify = Expect<Equal<typeof naive, typeof app>>
+  })
+
+  describe('Nested endpoint groups', () => {
+    const photos = new Hono().get('/list', (c) => c.jsonT({ photos: 0 }))
+    const videos = new Hono().get('/list', (c) => c.jsonT({ videos: 0 }))
+    const routes = new Hono().route('/photo', photos).route('/video', videos)
+    const app = new Hono().route('/', routes)
+  })
 })
 
 describe('Use custom fetch method', () => {
